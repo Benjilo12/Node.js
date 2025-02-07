@@ -126,6 +126,38 @@ const url = require("url");
 
 ///////////////////////////////////////////////////////////
 /////SERVER
+
+const replaceTemplate = (temp, product) => {
+  //means golbal replaces productname
+  let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
+  output = output.replace(/{%IMAGE%}/g, product.image);
+  output = output.replace(/{%PRICE%}/g, product.price);
+  output = output.replace(/{%FROM}/g, product.from);
+  output = output.replace(/{%NUTRIENTS}/g, product.nutrients);
+};
+
+//we read the overview page
+const tempOverview = fs.readFileSync(
+  `${__dirname}/starter/templates/template-overview.html`,
+  "utf-8"
+);
+
+//we read the card page
+const tempCard = fs.readFileSync(
+  `${__dirname}/starter/templates/template-card.html`,
+  "utf-8"
+);
+
+//we read the product page
+const tempProduct = fs.readFileSync(
+  `${__dirname}/starter/templates/template-product.html`,
+  "utf-8"
+);
+
+//convert api from json
+const data = fs.readFileSync(`${__dirname}/final/dev-data/data.json`, "utf-8");
+const dataObj = JSON.parse(data);
+
 //creating a server
 //Hyper-Text Transfer Protocol
 //Localhost is like a domain name on the web
@@ -133,12 +165,27 @@ const url = require("url");
 const server = http.createServer((req, res) => {
   const pathName = req.url;
 
-  if (pathName === "/" || pathName === "./overview") {
-    res.end("This is the OVERVIEW");
+  //OVERVIEW page{%IMAGE%}
+  if (pathName === "/" || pathName === "/overview") {
+    //convert to html
+    res.writeHead(200, { "content-type": "text/html" });
+
+    const cardsHtml = dataObj.map((el) => replaceTemplate(tempCard, el));
+    res.end(tempOverview);
+
+    //Product Page
   } else if (pathName === "/product") {
     const pathName = req.url;
-    res.end("Hello from the server!");
+    res.end("This is the PRODUCT");
+
+    //Api
+  } else if (pathName === "/api") {
+    //we read the api file and the we convert the data from JSON file
+    //we rewrite in html format for arrangement
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(data);
   } else {
+    //Not found
     res.writeHead(404, { "content-type": "text/html" });
     res.end("<h1>Page not found!</h1>");
   }
@@ -155,3 +202,5 @@ server.listen(8000, "127.0.0.1", () => {
 //301 - Resource moved
 //404 - Not found
 //500 - internal server error
+
+//An api is a service which we can request some data
